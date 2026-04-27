@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <!DOCTYPE html>
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Digit Generator App</title>
+
+```
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        text-align: center;
+        margin: 0;
+        padding: 0;
+    }
+
+    .container {
+        margin-top: 40px;
+    }
+
+    h1 {
+        margin-bottom: 20px;
+    }
+
+    .controls {
+        margin-bottom: 20px;
+    }
+
+    input {
+        padding: 10px;
+        border-radius: 8px;
+        border: none;
+        outline: none;
+        width: 150px;
+        text-align: center;
+        font-size: 16px;
+    }
+
+    button {
+        padding: 10px 15px;
+        margin: 5px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: bold;
+        transition: 0.3s;
+    }
+
+    button:hover {
+        transform: scale(1.05);
+    }
+
+    .generate { background: #00c9a7; color: white; }
+    .save { background: #f9a825; color: white; }
+    .load { background: #ff5e78; color: white; }
+
+    canvas {
+        margin-top: 20px;
+        border: 4px solid white;
+        border-radius: 12px;
+        background: black;
+    }
+
+    .status {
+        margin-top: 15px;
+        font-size: 14px;
+        color: #e0e0e0;
+    }
+</style>
+```
+
+</head>
+
+<body>
+
+<div class="container">
+    <h1>🧠 Handwritten Digit Generator</h1>
+
+<div class="controls">
+    <input type="number" id="digitInput" placeholder="Enter 0-9" min="0" max="9">
+
+    <br>
+
+    <button class="generate" onclick="generateDigit()">Generate</button>
+    <button class="save" onclick="saveDigit()">Save</button>
+    <button class="load" onclick="loadDigit()">Load</button>
+</div>
+
+<canvas id="canvas" width="280" height="280"></canvas>
+
+<div class="status" id="status">Status: Ready</div>
+
+
+<!-- <input type="text" id="numberInput" placeholder="Enter number">
+<button onclick="writeNumber()">Write Number</button> -->
+
+</div>
+
+<script>
+let currentImage = null;
+
+function setStatus(msg) {
+    document.getElementById("status").innerText = "Status: " + msg;
+}
+
+function drawImage(data) {
+    let canvas = document.getElementById("canvas");
+    let ctx = canvas.getContext("2d");
+
+    let imgData = ctx.createImageData(28, 28);
+
+    for (let i = 0; i < 28; i++) {
+        for (let j = 0; j < 28; j++) {
+            let pixel = data[i][j];
+            let index = (i * 28 + j) * 4;
+
+            imgData.data[index] = pixel;
+            imgData.data[index+1] = pixel;
+            imgData.data[index+2] = pixel;
+            imgData.data[index+3] = 255;
+        }
+    }
+
+    let tempCanvas = document.createElement("canvas");
+    tempCanvas.width = 28;
+    tempCanvas.height = 28;
+
+    let tempCtx = tempCanvas.getContext("2d");
+    tempCtx.putImageData(imgData, 0, 0);
+
+    ctx.imageSmoothingEnabled = false;
+    ctx.drawImage(tempCanvas, 0, 0, 280, 280);
+}
+
+function generateDigit() {
+    setStatus("Generating...");
+
+    fetch('http://127.0.0.1:5000/generate', {
+        method: 'POST'
+    })
+    .then(res => res.json())
+    .then(data => {
+        currentImage = data;
+        drawImage(data);
+        setStatus("Generated new digit");
+    })
+    .catch(() => setStatus("Error generating"));
+}
+
+function saveDigit() {
+    let digit = document.getElementById("digitInput").value;
+
+    if (!digit || currentImage === null) {
+        setStatus("Enter digit & generate first");
+        return;
+    }
+
+    setStatus("Saving...");
+
+    fetch('http://127.0.0.1:5000/save', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ digit: digit, image: currentImage })
+    })
+    .then(res => res.json())
+    .then(() => setStatus("Saved successfully"))
+    .catch(() => setStatus("Save failed"));
+}
+
+function loadDigit() {
+    let digit = document.getElementById("digitInput").value;
+
+    if (!digit) {
+        setStatus("Enter digit first");
+        return;
+    }
+
+    setStatus("Loading...");
+
+    fetch(`http://127.0.0.1:5000/get/${digit}`)
+    .then(res => res.json())
+    .then(data => {
+        if (data.error) {
+            setStatus("No images found");
+        } else {
+            drawImage(data);
+            setStatus("Loaded from database");
+        }
+    })
+    .catch(() => setStatus("Load failed"));
+}
+
+</script>
+
+</body>
+</html>
+
+</body>
+</html>

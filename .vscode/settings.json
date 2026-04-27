@@ -1,0 +1,4 @@
+{
+    "terminal.integrated.gpuAcceleration": "on",
+    "editor.experimentalGpuAcceleration": "on"
+}

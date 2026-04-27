@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Digit Studio</title>
+    <meta name="description" content="Recognize and generate handwritten digits using AI.">
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="background-blobs">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+    </div>
+    
+    <main class="container">
+        <header>
+            <h1>Digit <span>Studio</span></h1>
+            <p>Draw a digit to be recognized, or generate a synthetic one from scratch!</p>
+        </header>
+
+        <!-- PREDICT SECTION -->
+        <section class="card interface-card">
+            <h2>1. Digit Recognizer</h2>
+            <div class="canvas-container" style="background: #ffffff; border-radius: 1rem; padding: 0.5rem; margin-bottom: 1.5rem; margin-top: 1rem;">
+                <canvas id="drawCanvas" width="280" height="280" style="border-radius: 0.5rem; cursor: crosshair; display: block; touch-action: none;"></canvas>
+            </div>
+            
+            <div class="controls" style="width: 100%; max-width: 280px;">
+                <div class="btn-group" style="display: flex; gap: 1rem; margin-bottom: 1.5rem;">
+                    <button id="clearBtn" class="btn btn-secondary">Clear</button>
+                    <button id="predictBtn" class="btn btn-primary">Predict</button>
+                </div>
+                
+                <div class="divider" style="display: flex; align-items: center; text-align: center; margin-bottom: 1.5rem; color: var(--text-muted);">
+                    <span style="padding: 0 10px; font-size: 0.875rem; font-weight: 600;">OR</span>
+                </div>
+                
+                <div class="upload-group" style="display: flex; flex-direction: column;">
+                    <label for="imageUpload" class="upload-label" style="display: flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 0.75rem 1rem; background: rgba(255, 255, 255, 0.05); border: 2px dashed rgba(255, 255, 255, 0.2); border-radius: 0.75rem; cursor: pointer; color: var(--text-muted); font-weight: 600; transition: all 0.2s ease;">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                        Upload Image
+                    </label>
+                    <input type="file" id="imageUpload" accept="image/*" style="display: none;">
+                </div>
+            </div>
+        </section>
+
+        <!-- PREDICT RESULT -->
+        <section class="card result-card" id="resultCard" style="display: none; text-align: center;">
+            <h2 style="color: var(--text-muted); font-size: 1.25rem; font-weight: 600; margin-bottom: 1rem; text-transform: uppercase;">Prediction Result</h2>
+            <div class="result-content" style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem;">
+                <span id="predictedDigit" class="digit" style="font-size: 6rem; font-weight: 800; line-height: 1; background: linear-gradient(135deg, #10b981, #3b82f6); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">-</span>
+                <div class="confidence-wrapper" style="background: rgba(0, 0, 0, 0.2); padding: 0.5rem 1rem; border-radius: 2rem; font-size: 0.875rem; color: var(--text-muted);">
+                    <span>Confidence</span>
+                    <span id="predictionConfidence" class="confidence-val" style="color: var(--text-main); font-weight: 600; margin-left: 0.25rem;">0%</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- GENERATOR SECTION -->
+        <section class="card interface-card" style="margin-top: 2rem;">
+            <h2>2. Synthetic Generator</h2>
+            <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem; text-align: center; margin-top: 0.5rem;">Generate a completely new handwritten digit using our trained cGAN.</p>
+            
+            <div style="display: flex; gap: 1rem; justify-content: center; margin-bottom: 1.5rem; width: 100%; max-width: 280px;">
+                <select id="digitSelect" style="flex: 1; padding: 0.75rem; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 0.75rem; color: var(--text-main); font-weight: 600; cursor: pointer;">
+                    <option value="">Random Digit</option>
+                    <option value="0">Zero (0)</option>
+                    <option value="1">One (1)</option>
+                    <option value="2">Two (2)</option>
+                    <option value="3">Three (3)</option>
+                    <option value="4">Four (4)</option>
+                    <option value="5">Five (5)</option>
+                    <option value="6">Six (6)</option>
+                    <option value="7">Seven (7)</option>
+                    <option value="8">Eight (8)</option>
+                    <option value="9">Nine (9)</option>
+                </select>
+            </div>
+
+            <div class="canvas-container" style="background: rgba(0,0,0,0.2); box-shadow: none; display: flex; justify-content: center; align-items: center; min-height: 250px; width: 100%; max-width: 280px; border: 1px solid rgba(255,255,255,0.1); margin-bottom: 2rem;">
+                <img id="generatedImg" src="" alt="Generated Digit" style="display: none; image-rendering: pixelated; width: 200px; height: 200px; border-radius: 0.5rem; border: 2px solid var(--primary);">
+                <span id="placeholderText" style="color: var(--text-muted); font-weight: 600;">Click below to generate!</span>
+            </div>
+            
+            <button id="generateBtn" class="btn btn-primary" style="width: 100%; max-width: 280px; background: linear-gradient(135deg, #10b981, #059669); box-shadow: 0 4px 14px 0 rgba(16, 185, 129, 0.39); padding: 1rem; font-size: 1.1rem;">Generate New Digit</button>
+        </section>
+    </main>
+    <script src="script.js"></script>
+</body>
+</html>
